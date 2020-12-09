@@ -99,7 +99,7 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   for (let id in users) {
-    if (users[id].email === email || users[id].password === password) {
+    if (users[id].email === email && users[id].password === password) {
       res.cookie('user_id', users[id].id);
       res.redirect(`/urls`);
       return;
