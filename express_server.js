@@ -29,7 +29,12 @@ const emailLookup = function(email) {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello world!");
+  const user = users[req.cookies["user_id"]]
+  if (user) {
+    res.redirect("urls");
+  } else {
+    res.redirect("login")
+  }
 });
 
 app.get("/urls", (req, res) => {
@@ -38,16 +43,20 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
-  const user = users[req.cookies["user_id"]]
-  const templateVars = { user };
-  res.render("urls_new", templateVars);
-});
-
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
+});
+
+app.get("/urls/new", (req, res) => {
+  const user = users[req.cookies["user_id"]]
+  const templateVars = { user };
+  if (user) {
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login")
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -79,7 +88,11 @@ app.post("/urls/:id", (req, res) => {
 app.get("/login", (req, res) => {
   const user = users[req.cookies["user_id"]]
   const templateVars = { user };
-  res.render("login", templateVars)
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    res.render("login", templateVars)
+  }
 })
 
 app.post("/login", (req, res) => {
@@ -104,7 +117,11 @@ app.post("/logout", (req, res) => {
 app.get("/register", (req, res) => {
   const user = users[req.cookies["user_id"]]
   const templateVars = { user };
-  res.render("register", templateVars);
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    res.render("register", templateVars);
+  }
 })
 
 app.post("/register", (req, res) => {
