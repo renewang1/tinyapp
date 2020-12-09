@@ -3,9 +3,9 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
-
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -142,14 +142,6 @@ app.post("/register", (req, res) => {
   console.log(users)
   res.cookie('user_id', ID);
   res.redirect(`/urls`);
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {
