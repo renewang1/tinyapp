@@ -47,6 +47,7 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
+  if (longURL.substring(0, ))
   urlDatabase[shortURL] = { longURL };
   res.redirect(`/urls/${shortURL}`);
 });
@@ -71,8 +72,15 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL].longURL;
-  res.redirect(longURL);
+  let longURL = urlDatabase[shortURL].longURL;
+  const httpsCheck = longURL.substring(0, 8) === "https://";
+  const httpCheck = longURL.substring(0, 7) === "http://";
+  if (httpsCheck || httpCheck) {
+    res.redirect(longURL);
+  } else {
+    longURL = `https://${longURL}`;
+    res.redirect(longURL);
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -141,7 +149,6 @@ app.post("/register", (req, res) => {
     return;
   }
   users[ID] = { id: ID, email, password };
-  console.log(users)
   res.cookie('user_id', ID);
   res.redirect(`/urls`);
 });
