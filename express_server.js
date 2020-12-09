@@ -76,12 +76,23 @@ app.post("/urls/:id", (req, res) => {
   urlDatabase[shortURL] = newURL;
 });
 
+app.get("/login", (req, res) => {
+  const user = users[req.cookies["user_id"]]
+  const templateVars = { user };
+  res.render("login", templateVars)
+})
+
 app.post("/login", (req, res) => {
-  // res.cookie('username', req.body.username);
   const email = req.body.email;
-  if(emailLookup(email)){
+  const password = req.body.password;
+  for (let id in users) {
+    if (users[id].email === email || users[id].password === password) {
       res.cookie('user_id', users[id].id);
+    }
   }
+  // if(emailLookup(email)){
+  //     res.cookie('user_id', users[id].id);
+  // }
   res.redirect(`/urls`);
 });
 
