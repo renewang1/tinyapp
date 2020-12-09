@@ -15,9 +15,18 @@ const urlDatabase = {
 
 const users = {};
 
-function generateRandomString() {
+const generateRandomString = function() {
   return Math.random().toString(36).substring(2, 8);
 }
+
+const emailLookup = function(email) {
+  for (let id in users) {
+    if (users[id].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
 
 app.get("/", (req, res) => {
   res.send("Hello world!");
@@ -69,10 +78,9 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req, res) => {
   // res.cookie('username', req.body.username);
-  for (let id in users) {
-    if (users[id].email === req.body.email) {
+  const email = req.body.email;
+  if(emailLookup(email)){
       res.cookie('user_id', users[id].id);
-    }
   }
   res.redirect(`/urls`);
 });
@@ -92,7 +100,18 @@ app.post("/register", (req, res) => {
   const ID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  if (email === '' || password === '') {
+    res.statusCode = 400;
+    res.end('Invalid email or password');
+    return;
+  }
+  if (emailLookup(email)) {
+    res.statusCode = 400;
+    res.end("Email already in use");
+    return;
+  }
   users[ID] = { id: ID, email, password };
+  console.log(users)
   res.cookie('user_id', ID);
   res.redirect(`/urls`);
 });
