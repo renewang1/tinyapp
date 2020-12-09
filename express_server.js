@@ -88,12 +88,12 @@ app.post("/login", (req, res) => {
   for (let id in users) {
     if (users[id].email === email || users[id].password === password) {
       res.cookie('user_id', users[id].id);
+      res.redirect(`/urls`);
+      return;
     }
   }
-  // if(emailLookup(email)){
-  //     res.cookie('user_id', users[id].id);
-  // }
-  res.redirect(`/urls`);
+  res.statusCode = 403;
+  res.end("Email or password cannot be found");
 });
 
 app.post("/logout", (req, res) => {
