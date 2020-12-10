@@ -139,13 +139,13 @@ app.post("/urls/:id", (req, res) => {
   const newURL = req.body.longURL;
   const user_id = users[req.cookies["user_id"]].id;
   //checking if shortURL belongs to user before editing based on cookies
-  if (shortURL in urlsForUser(user_id)) {
-    urlDatabase[shortURL].longURL = newURL;
-    res.redirect("/urls")
-  } else if (!user_id) {
+  if (!user_id) {
     res.status(403).send('User is not logged in');
   } else if (!urlsForUser(user_id).includes(shortURL)) {
     res.status(403).send('User does not own this URL');
+  } else if (shortURL in urlsForUser(user_id)) {
+    urlDatabase[shortURL].longURL = newURL;
+    res.redirect("/urls");
   }
 });
 
