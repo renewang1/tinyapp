@@ -102,7 +102,9 @@ app.get("/urls/:id", (req, res) => {
 //is passed in
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
-  console.log(shortURL)
+  if (!urlDatabase[shortURL]) {
+    res.status(404).send('Page not found');
+  }
   let longURL = urlDatabase[shortURL].longURL;
   const httpsCheck = longURL.substring(0, 8) === "https://";
   const httpCheck = longURL.substring(0, 7) === "http://";
