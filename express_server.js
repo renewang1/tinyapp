@@ -37,7 +37,6 @@ const emailLookup = function(email) {
 const urlsForUser = function(id) {
   let urls = {};
   for (let url in urlDatabase) {
-    console.log(urlDatabase[url].user_id)
     if (urlDatabase[url].user_id === id) {
       urls[url] = urlDatabase[url];
     }
@@ -47,8 +46,8 @@ const urlsForUser = function(id) {
 
 //Homepage that redirects to urls page if logged in or login page if not
 app.get("/", (req, res) => {
-  const user_id = users[req.session.user_id];
-  if (user_id) {
+  const user = users[req.session.user_id];
+  if (user) {
     res.redirect("urls");
   } else {
     res.redirect("login")
@@ -58,11 +57,11 @@ app.get("/", (req, res) => {
 //get urls that gives template file the complete url database, user cookie,
 //and url checking function
 app.get("/urls", (req, res) => {
-  const user_id = users[req.session.user_id]
-  const templateVars = { urls: urlDatabase, user_id, urlsForUser };
-  if (!user_id) {
+  const user = users[req.session.user_id];
+  if (!user) {
     res.status(403).send('User is not logged in');
   } else {
+    const templateVars = { urls: urlDatabase, user_id: user.id, urlsForUser, users };
     res.render("urls_index", templateVars);
   }
 });
@@ -71,9 +70,9 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  const user_id = users[req.session.user_id] ;
-  if (user_id) {
-    urlDatabase[shortURL] = { longURL, user_id };
+  const user = users[req.session.user_id];
+  if (user) {
+    urlDatabase[shortURL] = { longURL, user_id: user.id };
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.status(403).send('User is not logged in');
@@ -84,9 +83,9 @@ app.post("/urls", (req, res) => {
 //get urls/new page that gives user cookie if user is logged in or redirects
 //to login page if not
 app.get("/urls/new", (req, res) => {
-  const user_id = users[req.session.user_id];
-  const templateVars = { user_id };
-  if (user_id) {
+  const user = users[req.session.user_id];
+  if (user) {
+    const templateVars = { user_id: user.id, users };
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login")
@@ -100,13 +99,13 @@ app.get("/urls/:id", (req, res) => {
     res.status(404).send('Page not found');
   }
   const longURL = urlDatabase[shortURL].longURL;
-  const user_id = users[req.session.user_id];
-  const templateVars = { shortURL, longURL, user_id };
-  if (!user_id) {
+  const user = users[req.session.user_id];
+  if (!user) {
     res.status(403).send('User is not logged in');
-  } else if (!shortURL in urlsForUser(user_id)) {
+  } else if (!shortURL in urlsForUser(user.id)) {
     res.status(403).send('User does not own this url');
-  } else if (shortURL in urlsForUser(user_id)) {
+  } else if (shortURL in urlsForUser(user.id)) {
+    const templateVars = { shortURL, longURL, user_id: user.id, users };
     res.render("urls_show", templateVars);
   }
 });
@@ -134,13 +133,13 @@ app.get("/u/:id", (req, res) => {
 //post request to delete a URL
 app.post("/urls/:id/delete", (req, res) => {
   const shortURL = req.params.id;
-  const user_id = users[req.session.user_id];
+  const user = users[req.session.user_id];
   //checking if shortURL belongs to user before deleting based on cookies
-  if (!user_id) {
+  if (!user) {
     res.status(403).send('User is not logged in');
-  } else if (!shortURL in urlsForUser(user_id)) {
+  } else if (!shortURL in urlsForUser(user.id)) {
     res.status(403).send('User does not own this url');
-  } else if (shortURL in urlsForUser(user_id)) {
+  } else if (shortURL in urlsForUser(user.id)) {
     delete urlDatabase[shortURL];
     res.redirect(`/urls`);
   }
@@ -150,13 +149,13 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const newURL = req.body.longURL;
-  const user_id = users[req.session.user_id];
+  const user = users[req.session.user_id];
   //checking if shortURL belongs to user before editing based on cookies
-  if (!user_id) {
+  if (!user) {
     res.status(403).send('User is not logged in');
-  } else if (!shortURL in urlsForUser(user_id)) {
+  } else if (!shortURL in urlsForUser(user.id)) {
     res.status(403).send('User does not own this URL');
-  } else if (shortURL in urlsForUser(user_id)) {
+  } else if (shortURL in urlsForUser(user.id)) {
     urlDatabase[shortURL].longURL = newURL;
     res.redirect("/urls");
   }
@@ -164,12 +163,12 @@ app.post("/urls/:id", (req, res) => {
 
 //get request for login page
 app.get("/login", (req, res) => {
-  const user_id = users[req.session.user_id]
-  const templateVars = { user_id };
+  const user = users[req.session.user_id];
   //checking if user is logged in before rendering login page, if already logged in then redirect to /urls
-  if (user_id) {
+  if (user) {
     res.redirect("/urls");
   } else {
+    const templateVars = { user_id: undefined, users };
     res.render("login", templateVars)
   }
 })
@@ -198,12 +197,12 @@ app.post("/logout", (req, res) => {
 
 //get request for register page
 app.get("/register", (req, res) => {
-  const user_id = users[req.session.user_id];
-  const templateVars = { user_id };
+  const user = users[req.session.user_id];
   //checking if user is already logged in, if they are then redirect to /urls
-  if (user_id) {
+  if (user) {
     res.redirect("/urls");
   } else {
+    const templateVars = { user_id: undefined, user, users };
     res.render("register", templateVars);
   }
 })
@@ -227,7 +226,9 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
   users[ID] = { id: ID, email, hashedPassword };
   req.session.user_id = ID;
-  res.redirect(`/urls`);
+  const user_id = req.session.user_id;
+  const templateVars = { user_id, users, urlsForUser };
+  res.render("urls_index", templateVars);
 });
 
 app.listen(PORT, () => {
