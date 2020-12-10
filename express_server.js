@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const { getUserByEmail, generateRandomString } = require('./helpers');
+const methodOverride = require('method-override');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -12,6 +13,7 @@ app.use(cookieSession({
   keys: ['key1', 'key2']
 }));
 app.set("view engine", "ejs");
+app.use(methodOverride('_method'));
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", user_id: "aJ48lW" },
@@ -58,13 +60,13 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   const user = users[req.session.user_id];
+  //Adding new shortURL to database using longURL input and userID from cookie
   if (user) {
     urlDatabase[shortURL] = { longURL, user_id: user.id };
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.status(403).send('User is not logged in');
   }
-  //Adding new shortURL to database using longURL input and userID from cookie
 });
 
 //get urls/new page that gives user cookie if user is logged in or redirects
@@ -119,7 +121,7 @@ app.get("/u/:id", (req, res) => {
 });
 
 //post request to delete a URL
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id/delete", (req, res) => {
   const shortURL = req.params.id;
   const user = users[req.session.user_id];
   //checking if shortURL belongs to user before deleting based on cookies
@@ -134,7 +136,7 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 //post request to update a URL
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const newURL = req.body.longURL;
   const user = users[req.session.user_id];
