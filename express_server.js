@@ -47,8 +47,8 @@ const urlsForUser = function(id) {
 
 //Homepage that redirects to urls page if logged in or login page if not
 app.get("/", (req, res) => {
-  const user = users[req.session];
-  if (user) {
+  const user_id = users[req.session.user_id];
+  if (user_id) {
     res.redirect("urls");
   } else {
     res.redirect("login")
@@ -58,9 +58,9 @@ app.get("/", (req, res) => {
 //get urls that gives template file the complete url database, user cookie,
 //and url checking function
 app.get("/urls", (req, res) => {
-  const user = users[req.session.user_id]
-  const templateVars = { urls: urlDatabase, user, urlsForUser };
-  if (!user) {
+  const user_id = users[req.session.user_id]
+  const templateVars = { urls: urlDatabase, user_id, urlsForUser };
+  if (!user_id) {
     res.status(403).send('User is not logged in');
   } else {
     res.render("urls_index", templateVars);
@@ -85,7 +85,7 @@ app.post("/urls", (req, res) => {
 //to login page if not
 app.get("/urls/new", (req, res) => {
   const user_id = users[req.session.user_id];
-  const templateVars = { user };
+  const templateVars = { user_id };
   if (user_id) {
     res.render("urls_new", templateVars);
   } else {
@@ -101,7 +101,7 @@ app.get("/urls/:id", (req, res) => {
   }
   const longURL = urlDatabase[shortURL].longURL;
   const user_id = users[req.session.user_id];
-  const templateVars = { shortURL, longURL, user };
+  const templateVars = { shortURL, longURL, user_id };
   if (!user_id) {
     res.status(403).send('User is not logged in');
   } else if (!shortURL in urlsForUser(user_id)) {
@@ -164,10 +164,10 @@ app.post("/urls/:id", (req, res) => {
 
 //get request for login page
 app.get("/login", (req, res) => {
-  const user = users[req.session]
-  const templateVars = { user };
+  const user_id = users[req.session.user_id]
+  const templateVars = { user_id };
   //checking if user is logged in before rendering login page, if already logged in then redirect to /urls
-  if (user) {
+  if (user_id) {
     res.redirect("/urls");
   } else {
     res.render("login", templateVars)
@@ -198,10 +198,10 @@ app.post("/logout", (req, res) => {
 
 //get request for register page
 app.get("/register", (req, res) => {
-  const user = users[req.session];
-  const templateVars = { user };
+  const user_id = users[req.session.user_id];
+  const templateVars = { user_id };
   //checking if user is already logged in, if they are then redirect to /urls
-  if (user) {
+  if (user_id) {
     res.redirect("/urls");
   } else {
     res.render("register", templateVars);
