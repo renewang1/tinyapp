@@ -33,6 +33,16 @@ const emailLookup = function(email) {
   return false;
 };
 
+const getUserByEmail = function(email, database) {
+  let user = null;
+  for (let id in database) {
+    if (database[id].email === email) {
+      user = database[id];
+    }
+  }
+  return user;
+}
+
 //Function that returns object containing urls that match user's ID
 const urlsForUser = function(id) {
   let urls = {};
@@ -177,21 +187,29 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  for (let id in users) {
-    //checking if email and password inputted matches a user in the database
-    //password check is for hashed password for security
-    if (users[id].email === email && bcrypt.compareSync(password, users[id].hashedPassword)) {
-      req.session.user_id = users[id].id;
+  const existingUser = getUserByEmail(email, users);
+  if (existingUser.email === email) {
+    if (bcrypt.compareSync(password, existingUser.hashedPassword)){
+      req.session.user_id = existingUser.id;
       res.redirect(`/urls`);
       return;
     }
   }
+  // for (let id in users) {
+  //   //checking if email and password inputted matches a user in the database
+  //   //password check is for hashed password for security
+  //   if (users[id].email === email && bcrypt.compareSync(password, users[id].hashedPassword)) {
+  //     req.session.user_id = users[id].id;
+  //     res.redirect(`/urls`);
+  //     return;
+  //   }
+  // }
   res.status(401).send('Email or password is incorect');
 });
 
 //post request to logout, clears cookies and redirects to /url
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect(`/urls`);
 });
 
@@ -218,7 +236,7 @@ app.post("/register", (req, res) => {
     return;
   }
   //Checking if email is already in use by existing user
-  if (emailLookup(email)) {
+  if (getUserByEmail(email, users)) {
     res.status(409).send('Email is already in use');
     return;
   }
