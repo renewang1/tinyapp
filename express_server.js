@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session')
 const bcrypt = require('bcrypt');
+const { getUserByEmail } = require('./helpers');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -22,16 +23,6 @@ const users = {};
 
 const generateRandomString = function() {
   return Math.random().toString(36).substring(2, 8);
-}
-
-const getUserByEmail = function(email, database) {
-  let user = null;
-  for (let id in database) {
-    if (database[id].email === email) {
-      user = database[id];
-    }
-  }
-  return user;
 }
 
 //Function that returns object containing urls that match user's ID
@@ -101,6 +92,7 @@ app.get("/urls/:id", (req, res) => {
   }
   const longURL = urlDatabase[shortURL].longURL;
   const user = users[req.session.user_id];
+  //checks status, if user is not logged in or has no access then gets error html
   if (!user) {
     res.status(403).send('User is not logged in');
   } else if (!shortURL in urlsForUser(user.id)) {
