@@ -4,7 +4,7 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session')
 const bcrypt = require('bcrypt');
-const { getUserByEmail } = require('./helpers');
+const { getUserByEmail, generateRandomString } = require('./helpers');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -18,12 +18,7 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.google.ca", user_id: "aJ48lW" }
 };
 
-
 const users = {};
-
-const generateRandomString = function() {
-  return Math.random().toString(36).substring(2, 8);
-}
 
 //Function that returns object containing urls that match user's ID
 const urlsForUser = function(id) {
