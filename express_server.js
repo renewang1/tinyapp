@@ -98,7 +98,13 @@ app.get("/urls/:id", (req, res) => {
   const longURL = urlDatabase[shortURL].longURL;
   const user = users[req.cookies["user_id"]];
   const templateVars = { shortURL, longURL, user };
-  res.render("urls_show", templateVars);
+  if (!user) {
+    res.status(403).send('User is not logged in');
+  } else if (!urlsForUser(user_id).includes(shortURL)) {
+    res.status(403).send('User does not own this url');
+  } else if (shortURL in urlsForUser(user_id)) {
+    res.render("urls_show", templateVars);
+  }
 });
 
 //get request that will redirect user to longURL associated to shortURL that
