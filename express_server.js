@@ -96,11 +96,11 @@ app.get("/urls/:id", (req, res) => {
     res.status(404).send('Page not found');
   }
   const longURL = urlDatabase[shortURL].longURL;
-  const user = users[req.cookies["user_id"]];
-  const templateVars = { shortURL, longURL, user };
-  if (!user) {
+  const user_id = users[req.cookies["user_id"]];
+  const templateVars = { shortURL, longURL, user_id };
+  if (!user_id) {
     res.status(403).send('User is not logged in');
-  } else if (!urlsForUser(user_id).includes(shortURL)) {
+  } else if (!shortURL in urlsForUser(user_id)) {
     res.status(403).send('User does not own this url');
   } else if (shortURL in urlsForUser(user_id)) {
     res.render("urls_show", templateVars);
@@ -134,7 +134,7 @@ app.post("/urls/:id/delete", (req, res) => {
   //checking if shortURL belongs to user before deleting based on cookies
   if (!user_id) {
     res.status(403).send('User is not logged in');
-  } else if (!urlsForUser(user_id).includes(shortURL)) {
+  } else if (!shortURL in urlsForUser(user_id)) {
     res.status(403).send('User does not own this url');
   } else if (shortURL in urlsForUser(user_id)) {
     delete urlDatabase[shortURL];
@@ -150,7 +150,7 @@ app.post("/urls/:id", (req, res) => {
   //checking if shortURL belongs to user before editing based on cookies
   if (!user_id) {
     res.status(403).send('User is not logged in');
-  } else if (!urlsForUser(user_id).includes(shortURL)) {
+  } else if (!shortURL in urlsForUser(user_id)) {
     res.status(403).send('User does not own this URL');
   } else if (shortURL in urlsForUser(user_id)) {
     urlDatabase[shortURL].longURL = newURL;
