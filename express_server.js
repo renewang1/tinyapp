@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
+const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -32,8 +33,6 @@ const emailLookup = function(email) {
 const urlsForUser = function(id) {
   let urls = {};
   for (let url in urlDatabase) {
-    // console.log(id);
-    console.log(urlDatabase[url]);
     if (urlDatabase[url].userID === id) {
       urls[url] = urlDatabase[url];
     }
@@ -127,7 +126,7 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   for (let id in users) {
-    if (users[id].email === email && users[id].password === password) {
+    if (users[id].email === email && bcrypt.compareSync(password, users[id].hashedPassword)) {
       res.cookie('user_id', users[id].id);
       res.redirect(`/urls`);
       return;
@@ -156,6 +155,7 @@ app.post("/register", (req, res) => {
   const ID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   if (email === '' || password === '') {
     res.statusCode = 400;
     res.end('Invalid email or password');
@@ -166,7 +166,7 @@ app.post("/register", (req, res) => {
     res.end("Email already in use");
     return;
   }
-  users[ID] = { id: ID, email, password };
+  users[ID] = { id: ID, email, hashedPassword };
   res.cookie('user_id', ID);
   res.redirect(`/urls`);
 });
