@@ -126,6 +126,10 @@ app.post("/urls/:id", (req, res) => {
   //checking if shortURL belongs to user before editing based on cookies
   if (urlsForUser(user_id).includes(shortURL)) {
     urlDatabase[shortURL].longURL = newURL;
+  } else if (!user_id) {
+    res.end('User is not logged in');
+  } else if (!urlsForUser(user_id).includes(shortURL)) {
+    res.end('User does not own this URL')
   }
 });
 
