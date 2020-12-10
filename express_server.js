@@ -92,6 +92,9 @@ app.get("/urls/new", (req, res) => {
 //get request that renders a single page relating to the shortURL passed in
 app.get("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
+  if (!urlDatabase[shortURL]) {
+    res.status(404).send('Page not found');
+  }
   const longURL = urlDatabase[shortURL].longURL;
   const user = users[req.cookies["user_id"]];
   const templateVars = { shortURL, longURL, user };
