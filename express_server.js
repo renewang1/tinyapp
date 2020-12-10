@@ -24,15 +24,6 @@ const generateRandomString = function() {
   return Math.random().toString(36).substring(2, 8);
 }
 
-const emailLookup = function(email) {
-  for (let id in users) {
-    if (users[id].email === email) {
-      return true;
-    }
-  }
-  return false;
-};
-
 const getUserByEmail = function(email, database) {
   let user = null;
   for (let id in database) {
@@ -195,15 +186,6 @@ app.post("/login", (req, res) => {
       return;
     }
   }
-  // for (let id in users) {
-  //   //checking if email and password inputted matches a user in the database
-  //   //password check is for hashed password for security
-  //   if (users[id].email === email && bcrypt.compareSync(password, users[id].hashedPassword)) {
-  //     req.session.user_id = users[id].id;
-  //     res.redirect(`/urls`);
-  //     return;
-  //   }
-  // }
   res.status(401).send('Email or password is incorect');
 });
 
