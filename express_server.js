@@ -112,14 +112,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const user_id = users[req.cookies["user_id"]].id;
   //checking if shortURL belongs to user before deleting based on cookies
-  if (urlsForUser(user_id).includes(shortURL)) {
+  if (shortURL in urlsForUser(user_id)) {
     delete urlDatabase[shortURL];
+    res.redirect(`/urls`);
   } else if (!user_id) {
     res.end('User is not logged in');
   } else if (!urlsForUser(user_id).includes(shortURL)) {
     res.end('User does not own this URL')
   }
-  res.redirect(`/urls`);
 });
 
 //post request to update a URL
@@ -128,8 +128,9 @@ app.post("/urls/:id", (req, res) => {
   const newURL = req.body.longURL;
   const user_id = users[req.cookies["user_id"]].id;
   //checking if shortURL belongs to user before editing based on cookies
-  if (urlsForUser(user_id).includes(shortURL)) {
+  if (shortURL in urlsForUser(user_id)) {
     urlDatabase[shortURL].longURL = newURL;
+    res.redirect("/urls")
   } else if (!user_id) {
     res.end('User is not logged in');
   } else if (!urlsForUser(user_id).includes(shortURL)) {
