@@ -181,7 +181,6 @@ app.post("/register", (req, res) => {
   const ID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  const hashedPassword = bcrypt.hashSync(password, 10);
   //Checking if email or password field is empty
   if (email === '' || password === '') {
     res.statusCode = 400;
@@ -195,6 +194,7 @@ app.post("/register", (req, res) => {
     return;
   }
   //Creating user in users database
+  const hashedPassword = bcrypt.hashSync(password, 10);
   users[ID] = { id: ID, email, hashedPassword };
   res.cookie('user_id', ID);
   res.redirect(`/urls`);
