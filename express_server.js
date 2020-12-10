@@ -114,6 +114,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   //checking if shortURL belongs to user before deleting based on cookies
   if (urlsForUser(user_id).includes(shortURL)) {
     delete urlDatabase[shortURL];
+  } else if (!user_id) {
+    res.end('User is not logged in');
+  } else if (!urlsForUser(user_id).includes(shortURL)) {
+    res.end('User does not own this URL')
   }
   res.redirect(`/urls`);
 });
