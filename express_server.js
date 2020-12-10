@@ -2,11 +2,14 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser')
+const cookieSession = require('cookie-session')
 const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: "session",
+  keys: ['key1', 'key2']
+}))
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -44,7 +47,7 @@ const urlsForUser = function(id) {
 
 //Homepage that redirects to urls page if logged in or login page if not
 app.get("/", (req, res) => {
-  const user = users[req.cookies["user_id"]]
+  const user = users[req.session];
   if (user) {
     res.redirect("urls");
   } else {
@@ -55,7 +58,7 @@ app.get("/", (req, res) => {
 //get urls that gives template file the complete url database, user cookie,
 //and url checking function
 app.get("/urls", (req, res) => {
-  const user = users[req.cookies["user_id"]]
+  const user = users[req.session.user_id]
   const templateVars = { urls: urlDatabase, user, urlsForUser };
   if (!user) {
     res.status(403).send('User is not logged in');
@@ -68,7 +71,7 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  const user_id = users[req.cookies["user_id"]].id ;
+  const user_id = users[req.session.user_id] ;
   if (user_id) {
     urlDatabase[shortURL] = { longURL, user_id };
     res.redirect(`/urls/${shortURL}`);
@@ -81,9 +84,9 @@ app.post("/urls", (req, res) => {
 //get urls/new page that gives user cookie if user is logged in or redirects
 //to login page if not
 app.get("/urls/new", (req, res) => {
-  const user = users[req.cookies["user_id"]]
+  const user_id = users[req.session.user_id];
   const templateVars = { user };
-  if (user) {
+  if (user_id) {
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login")
@@ -97,13 +100,13 @@ app.get("/urls/:id", (req, res) => {
     res.status(404).send('Page not found');
   }
   const longURL = urlDatabase[shortURL].longURL;
-  const user = users[req.cookies["user_id"]];
+  const user_id = users[req.session.user_id];
   const templateVars = { shortURL, longURL, user };
-  if (!user) {
+  if (!user_id) {
     res.status(403).send('User is not logged in');
-  } else if (!shortURL in urlsForUser(user.id)) {
+  } else if (!shortURL in urlsForUser(user_id)) {
     res.status(403).send('User does not own this url');
-  } else if (shortURL in urlsForUser(user.id)) {
+  } else if (shortURL in urlsForUser(user_id)) {
     res.render("urls_show", templateVars);
   }
 });
@@ -131,7 +134,7 @@ app.get("/u/:id", (req, res) => {
 //post request to delete a URL
 app.post("/urls/:id/delete", (req, res) => {
   const shortURL = req.params.id;
-  const user_id = users[req.cookies["user_id"]].id;
+  const user_id = users[req.session.user_id];
   //checking if shortURL belongs to user before deleting based on cookies
   if (!user_id) {
     res.status(403).send('User is not logged in');
@@ -147,7 +150,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const newURL = req.body.longURL;
-  const user_id = users[req.cookies["user_id"]].id;
+  const user_id = users[req.session.user_id];
   //checking if shortURL belongs to user before editing based on cookies
   if (!user_id) {
     res.status(403).send('User is not logged in');
@@ -161,7 +164,7 @@ app.post("/urls/:id", (req, res) => {
 
 //get request for login page
 app.get("/login", (req, res) => {
-  const user = users[req.cookies["user_id"]]
+  const user = users[req.session]
   const templateVars = { user };
   //checking if user is logged in before rendering login page, if already logged in then redirect to /urls
   if (user) {
@@ -179,7 +182,7 @@ app.post("/login", (req, res) => {
     //checking if email and password inputted matches a user in the database
     //password check is for hashed password for security
     if (users[id].email === email && bcrypt.compareSync(password, users[id].hashedPassword)) {
-      res.cookie('user_id', users[id].id);
+      req.session.user_id = users[id].id;
       res.redirect(`/urls`);
       return;
     }
@@ -195,7 +198,7 @@ app.post("/logout", (req, res) => {
 
 //get request for register page
 app.get("/register", (req, res) => {
-  const user = users[req.cookies["user_id"]]
+  const user = users[req.session];
   const templateVars = { user };
   //checking if user is already logged in, if they are then redirect to /urls
   if (user) {
@@ -223,7 +226,7 @@ app.post("/register", (req, res) => {
   //Creating user in users database
   const hashedPassword = bcrypt.hashSync(password, 10);
   users[ID] = { id: ID, email, hashedPassword };
-  res.cookie('user_id', ID);
+  req.session.user_id = ID;
   res.redirect(`/urls`);
 });
 
