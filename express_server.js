@@ -29,6 +29,18 @@ const emailLookup = function(email) {
   return false;
 };
 
+const urlsForUser = function(id) {
+  let urls = {};
+  for (let url in urlDatabase) {
+    // console.log(id);
+    console.log(urlDatabase[url]);
+    if (urlDatabase[url].userID === id) {
+      urls[url] = urlDatabase[url];
+    }
+  }
+  return urls;
+}
+
 app.get("/", (req, res) => {
   const user = users[req.cookies["user_id"]]
   if (user) {
@@ -40,15 +52,15 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user = users[req.cookies["user_id"]]
-  const templateVars = { urls: urlDatabase, user };
+  const templateVars = { urls: urlDatabase, user, urlsForUser };
   res.render("urls_index", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  if (longURL.substring(0, ))
-  urlDatabase[shortURL] = { longURL };
+  const userID = users[req.cookies["user_id"]].id ;
+  urlDatabase[shortURL] = { longURL, userID };
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -92,7 +104,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const newURL = req.body.longURL;
-  urlDatabase[shortURL] = newURL;
+  urlDatabase[shortURL].longURL = newURL;
 });
 
 app.get("/login", (req, res) => {
