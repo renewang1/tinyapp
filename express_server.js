@@ -97,16 +97,13 @@ app.get("/urls/:id", (req, res) => {
     res.status(404).send('Page not found');
   }
   const longURL = urlDatabase[shortURL].longURL;
-  const user_id = users[req.cookies["user_id"]].id;
-  const templateVars = { shortURL, longURL, user_id };
-  console.log(urlDatabase)
-  console.log(user_id)
-  console.log(urlsForUser(user_id))
-  if (!user_id) {
+  const user = users[req.cookies["user_id"]];
+  const templateVars = { shortURL, longURL, user };
+  if (!user) {
     res.status(403).send('User is not logged in');
-  } else if (!shortURL in urlsForUser(user_id)) {
+  } else if (!shortURL in urlsForUser(user.id)) {
     res.status(403).send('User does not own this url');
-  } else if (shortURL in urlsForUser(user_id)) {
+  } else if (shortURL in urlsForUser(user.id)) {
     res.render("urls_show", templateVars);
   }
 });
