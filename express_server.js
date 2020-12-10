@@ -10,8 +10,8 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", user_id: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", user_id: "aJ48lW" }
 };
 
 
@@ -34,7 +34,8 @@ const emailLookup = function(email) {
 const urlsForUser = function(id) {
   let urls = {};
   for (let url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
+    console.log(urlDatabase[url].user_id)
+    if (urlDatabase[url].user_id === id) {
       urls[url] = urlDatabase[url];
     }
   }
@@ -67,9 +68,9 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  const userID = users[req.cookies["user_id"]].id ;
-  if (userID) {
-    urlDatabase[shortURL] = { longURL, userID };
+  const user_id = users[req.cookies["user_id"]].id ;
+  if (user_id) {
+    urlDatabase[shortURL] = { longURL, user_id };
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.status(403).send('User is not logged in');
@@ -96,8 +97,11 @@ app.get("/urls/:id", (req, res) => {
     res.status(404).send('Page not found');
   }
   const longURL = urlDatabase[shortURL].longURL;
-  const user_id = users[req.cookies["user_id"]];
+  const user_id = users[req.cookies["user_id"]].id;
   const templateVars = { shortURL, longURL, user_id };
+  console.log(urlDatabase)
+  console.log(user_id)
+  console.log(urlsForUser(user_id))
   if (!user_id) {
     res.status(403).send('User is not logged in');
   } else if (!shortURL in urlsForUser(user_id)) {
