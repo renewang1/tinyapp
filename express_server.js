@@ -56,7 +56,11 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const user = users[req.cookies["user_id"]]
   const templateVars = { urls: urlDatabase, user, urlsForUser };
-  res.render("urls_index", templateVars);
+  if (!user) {
+    res.status(403).send('User is not logged in');
+  } else {
+    res.render("urls_index", templateVars);
+  }
 });
 
 //post urls that creates new shortURL given a longURL
@@ -68,7 +72,7 @@ app.post("/urls", (req, res) => {
     urlDatabase[shortURL] = { longURL, userID };
     res.redirect(`/urls/${shortURL}`);
   } else {
-    res.end("user not logged in");
+    res.status(403).send('User is not logged in');
   }
   //Adding new shortURL to database using longURL input and userID from cookie
 });
@@ -96,8 +100,9 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //get request that will redirect user to longURL associated to shortURL that
 //is passed in
-app.get("/u/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
+app.get("/u/:id", (req, res) => {
+  const shortURL = req.params.id;
+  console.log(shortURL)
   let longURL = urlDatabase[shortURL].longURL;
   const httpsCheck = longURL.substring(0, 8) === "https://";
   const httpCheck = longURL.substring(0, 7) === "http://";
@@ -116,13 +121,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const user_id = users[req.cookies["user_id"]].id;
   //checking if shortURL belongs to user before deleting based on cookies
-  if (shortURL in urlsForUser(user_id)) {
+  if (!user_id) {
+    res.status(403).send('User is not logged in');
+  } else if (!urlsForUser(user_id).includes(shortURL)) {
+    res.status(403).send('User does not own this url');
+  } else if (shortURL in urlsForUser(user_id)) {
     delete urlDatabase[shortURL];
     res.redirect(`/urls`);
-  } else if (!user_id) {
-    res.end('User is not logged in');
-  } else if (!urlsForUser(user_id).includes(shortURL)) {
-    res.end('User does not own this URL')
   }
 });
 
@@ -136,9 +141,9 @@ app.post("/urls/:id", (req, res) => {
     urlDatabase[shortURL].longURL = newURL;
     res.redirect("/urls")
   } else if (!user_id) {
-    res.end('User is not logged in');
+    res.status(403).send('User is not logged in');
   } else if (!urlsForUser(user_id).includes(shortURL)) {
-    res.end('User does not own this URL')
+    res.status(403).send('User does not own this URL');
   }
 });
 
@@ -167,8 +172,7 @@ app.post("/login", (req, res) => {
       return;
     }
   }
-  res.statusCode = 403;
-  res.end("Email or password cannot be found");
+  res.status(401).send('Email or password is incorect');
 });
 
 //post request to logout, clears cookies and redirects to /url
@@ -196,14 +200,12 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
   //Checking if email or password field is empty
   if (email === '' || password === '') {
-    res.statusCode = 400;
-    res.end('Invalid email or password');
+    res.status(401).send('Email or password is incorect');
     return;
   }
   //Checking if email is already in use by existing user
   if (emailLookup(email)) {
-    res.statusCode = 400;
-    res.end("Email already in use");
+    res.status(409).send('Email is already in use');
     return;
   }
   //Creating user in users database
