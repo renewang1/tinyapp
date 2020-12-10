@@ -26,6 +26,12 @@ describe('getUserByEmail', function() {
     // Write your assert statement here
     assert.deepEqual(user, expectedOutput)
   });
+
+  it('should return null if email does not exist', function() {
+    const user = getUserByEmail("noEmail@example.com", testUsers);
+    const expectedOutput = null;
+    assert.equal(user, expectedOutput);
+  })
 });
 
 describe('generateRandomString', function() {
