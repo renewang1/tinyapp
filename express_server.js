@@ -90,8 +90,8 @@ app.get("/urls/new", (req, res) => {
 });
 
 //get request that renders a single page relating to the shortURL passed in
-app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
+app.get("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
   const user = users[req.cookies["user_id"]];
   const templateVars = { shortURL, longURL, user };
@@ -117,8 +117,8 @@ app.get("/u/:id", (req, res) => {
 });
 
 //post request to delete a URL
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL;
+app.post("/urls/:id/delete", (req, res) => {
+  const shortURL = req.params.id;
   const user_id = users[req.cookies["user_id"]].id;
   //checking if shortURL belongs to user before deleting based on cookies
   if (!user_id) {
