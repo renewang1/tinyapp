@@ -67,9 +67,10 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   const user = users[req.session.user_id];
+  const date = new Date();
   //Adding new shortURL to database using longURL input and userID from cookie
   if (user) {
-    urlDatabase[shortURL] = { longURL, user_id: user.id, visits: 0, visitors: [] };
+    urlDatabase[shortURL] = { longURL, user_id: user.id, visits: 0, visitors: [], date };
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.status(403).send('User is not logged in');
