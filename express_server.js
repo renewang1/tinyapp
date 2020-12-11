@@ -33,6 +33,13 @@ const urlsForUser = function(id) {
   return urls;
 };
 
+const urlVisited = function(shortURL, userID, urlDatabase) {
+  urlDatabase[shortURL].visits += 1;
+  if(!(urlDatabase[shortURL].visitors.includes(userID))) {
+    urlDatabase[shortURL].visitors.push(userID);
+  }
+}
+
 //Homepage that redirects to urls page if logged in or login page if not
 app.get("/", (req, res) => {
   const user = users[req.session.user_id];
@@ -62,7 +69,7 @@ app.post("/urls", (req, res) => {
   const user = users[req.session.user_id];
   //Adding new shortURL to database using longURL input and userID from cookie
   if (user) {
-    urlDatabase[shortURL] = { longURL, user_id: user.id, visits: 0 };
+    urlDatabase[shortURL] = { longURL, user_id: user.id, visits: 0, visitors: [] };
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.status(403).send('User is not logged in');
@@ -95,7 +102,11 @@ app.get("/urls/:id", (req, res) => {
   } else if (!(shortURL in urlsForUser(user.id))) {
     res.status(403).send('User does not own this url');
   } else if (shortURL in urlsForUser(user.id)) {
-    urlDatabase[shortURL].visits += 1;
+    // urlDatabase[shortURL].visits += 1;
+    // if(!(urlDatabase[shortURL].visitors.includes(user.id))) {
+    //   urlDatabase[shortURL].visitors.push(user.id);
+    //   console.log(urlDatabase[shortURL].visitors)
+    // }
     const templateVars = { shortURL, longURL, user_id: user.id, users, url: urlDatabase };
     res.render("urls_show", templateVars);
   }
@@ -111,14 +122,23 @@ app.get("/u/:id", (req, res) => {
   let longURL = urlDatabase[shortURL].longURL;
   const httpsCheck = longURL.substring(0, 8) === "https://";
   const httpCheck = longURL.substring(0, 7) === "http://";
+  const user = users[req.session.user_id];
+  let guestID = null;
+  //Checking if user is not logged in, if not, random ID cookie is given as guest
+  if (!user) {
+    const ID = generateRandomString();
+    req.session.user_id = ID;
+    guestID = req.session.user_id;
+    urlVisited(shortURL, req.session.user_id, urlDatabase)
+  } else {
+    urlVisited(shortURL, user.id, urlDatabase);
+  }
   //checking if longURL has 'http://' or 'https://', if not it will add it
   //must do this because res.redirect will redirect to relative path if no protocol detected
-  if (httpsCheck || httpCheck) {
-    res.redirect(longURL);
-  } else {
+  if (!(httpsCheck || httpCheck)) {
     longURL = `https://${longURL}`;
-    res.redirect(longURL);
   }
+  res.redirect(longURL);
 });
 
 //post request to delete a URL
