@@ -111,8 +111,7 @@ app.get("/u/:id", (req, res) => {
   if (!user) {
     const ID = generateRandomString();
     req.session.user_id = ID;
-    guestID = req.session.user_id;
-    urlVisited(shortURL, req.session.user_id, urlDatabase)
+    urlVisited(shortURL, req.session.user_id, urlDatabase);
   } else {
     urlVisited(shortURL, user.id, urlDatabase);
   }
