@@ -62,7 +62,7 @@ app.post("/urls", (req, res) => {
   const user = users[req.session.user_id];
   //Adding new shortURL to database using longURL input and userID from cookie
   if (user) {
-    urlDatabase[shortURL] = { longURL, user_id: user.id };
+    urlDatabase[shortURL] = { longURL, user_id: user.id, visits: 0 };
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.status(403).send('User is not logged in');
@@ -95,7 +95,8 @@ app.get("/urls/:id", (req, res) => {
   } else if (!(shortURL in urlsForUser(user.id))) {
     res.status(403).send('User does not own this url');
   } else if (shortURL in urlsForUser(user.id)) {
-    const templateVars = { shortURL, longURL, user_id: user.id, users };
+    urlDatabase[shortURL].visits += 1;
+    const templateVars = { shortURL, longURL, user_id: user.id, users, url: urlDatabase };
     res.render("urls_show", templateVars);
   }
 });
