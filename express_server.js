@@ -85,11 +85,6 @@ app.get("/urls/:id", (req, res) => {
   } else if (!(shortURL in urlsForUser(user.id, urlDatabase))) {
     res.status(403).send('User does not own this url');
   } else if (shortURL in urlsForUser(user.id, urlDatabase)) {
-    // urlDatabase[shortURL].visits += 1;
-    // if(!(urlDatabase[shortURL].visitors.includes(user.id))) {
-    //   urlDatabase[shortURL].visitors.push(user.id);
-    //   console.log(urlDatabase[shortURL].visitors)
-    // }
     const templateVars = { shortURL, longURL, user_id: user.id, users, url: urlDatabase };
     res.render("urls_show", templateVars);
   }
