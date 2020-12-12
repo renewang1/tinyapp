@@ -101,7 +101,6 @@ app.get("/u/:id", (req, res) => {
   const httpsCheck = longURL.substring(0, 8) === "https://";
   const httpCheck = longURL.substring(0, 7) === "http://";
   const user = users[req.session.user_id];
-  let guestID = null;
   //Checking if user is not logged in, if not, random ID cookie is given as guest
   if (!user) {
     const ID = generateRandomString();
